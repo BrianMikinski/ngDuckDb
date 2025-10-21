@@ -8,9 +8,20 @@ let db: AsyncDuckDB | null = null;
 async function initializeDB() {
   if (db) return db;
 
-  const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+  // Use local bundles instead of CDN with absolute URLs
+  const baseUrl = self.location.origin;
+  const MANUAL_BUNDLES: duckdb.DuckDBBundles = {
+    mvp: {
+      mainModule: `${baseUrl}/assets/duckdb/duckdb-mvp.wasm`,
+      mainWorker: `${baseUrl}/assets/duckdb/duckdb-browser-mvp.worker.js`,
+    },
+    eh: {
+      mainModule: `${baseUrl}/assets/duckdb/duckdb-eh.wasm`,
+      mainWorker: `${baseUrl}/assets/duckdb/duckdb-browser-eh.worker.js`,
+    },
+  };
   
-  const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+  const bundle = await duckdb.selectBundle(MANUAL_BUNDLES);
   
   const worker_url = URL.createObjectURL(
     new Blob([`importScripts("${bundle.mainWorker!}");`], { type: 'text/javascript' })
